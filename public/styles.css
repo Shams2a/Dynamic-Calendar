@@ -1,0 +1,614 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #fafafa;
+    color: #333;
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+header {
+    background: #2c3e50;
+    color: white;
+    padding: 25px;
+    margin-bottom: 30px;
+    border-bottom: 3px solid #34495e;
+}
+
+header h1 {
+    font-size: 1.8rem;
+    text-align: center;
+    font-weight: 400;
+}
+
+.main-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 25px;
+}
+
+/* Section des événements */
+.events-section {
+    background: white;
+    padding: 25px;
+    border: 1px solid #ddd;
+}
+
+.events-section h2 {
+    color: #2c3e50;
+    margin-bottom: 20px;
+    font-size: 1.3rem;
+    font-weight: 500;
+    border-bottom: 2px solid #e0e0e0;
+    padding-bottom: 10px;
+}
+
+.loading {
+    text-align: center;
+    padding: 40px;
+    color: #666;
+    font-style: italic;
+}
+
+.events-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.event-card {
+    border: 1px solid #e0e0e0;
+    border-left: 3px solid #3498db;
+    padding: 15px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: white;
+}
+
+.event-card:hover {
+    border-left-color: #2c3e50;
+    background: #f9f9f9;
+}
+
+.event-card.selected {
+    border-left-color: #2c3e50;
+    background: #f5f5f5;
+}
+
+.event-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 10px;
+}
+
+.event-details {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    color: #555;
+    font-size: 0.9rem;
+}
+
+.event-type {
+    display: inline-block;
+    padding: 3px 10px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    margin-top: 8px;
+    border: 1px solid;
+    width: fit-content;
+}
+
+.event-type.visio {
+    background: #ecf0f1;
+    color: #34495e;
+    border-color: #bdc3c7;
+}
+
+.event-type.physique {
+    background: #ecf0f1;
+    color: #34495e;
+    border-color: #bdc3c7;
+}
+
+.event-register-btn {
+    margin-top: 12px;
+    padding: 8px 16px;
+    background: #2c3e50;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: background 0.2s ease;
+}
+
+.event-register-btn:hover {
+    background: #34495e;
+}
+
+/* État vide - Aucun événement */
+.empty-state {
+    text-align: center;
+    padding: 60px 40px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin: 20px;
+}
+
+.empty-state-icon {
+    font-size: 4rem;
+    margin-bottom: 20px;
+    opacity: 0.5;
+}
+
+.empty-state h3 {
+    color: #2c3e50;
+    font-size: 1.5rem;
+    margin-bottom: 15px;
+    font-weight: 600;
+}
+
+.empty-state p {
+    color: #7f8c8d;
+    font-size: 1rem;
+    line-height: 1.6;
+    margin-bottom: 10px;
+}
+
+.empty-state-hint {
+    color: #95a5a6;
+    font-size: 0.9rem;
+    font-style: italic;
+    margin-top: 20px;
+}
+
+/* Formations avec tooltip */
+.formations-line {
+    position: relative;
+}
+
+.formations-tooltip {
+    color: #667eea;
+    font-weight: 600;
+    cursor: help;
+    position: relative;
+    font-size: 0.85em;
+}
+
+/* Tooltip dynamique créé en JavaScript */
+.formations-tooltip-content {
+    position: fixed;
+    background: #2c3e50;
+    color: white;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    min-width: 250px;
+    max-width: 350px;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    font-weight: normal;
+    line-height: 1.8;
+    text-align: left;
+    animation: tooltipFadeIn 0.2s ease;
+    pointer-events: none;
+}
+
+.formations-tooltip-content div {
+    margin: 4px 0;
+}
+
+.formations-tooltip-content::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 8px solid transparent;
+    border-top-color: #2c3e50;
+}
+
+@keyframes tooltipFadeIn {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -100%) translateY(5px);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -100%) translateY(0);
+    }
+}
+
+/* Section calendrier */
+.calendar-section {
+    background: white;
+    padding: 25px;
+    border: 1px solid #ddd;
+    position: sticky;
+    top: 20px;
+    height: fit-content;
+}
+
+.calendar-section h2 {
+    color: #2c3e50;
+    margin-bottom: 20px;
+    font-size: 1.3rem;
+    font-weight: 500;
+    border-bottom: 2px solid #e0e0e0;
+    padding-bottom: 10px;
+}
+
+.calendar-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.calendar-controls button {
+    background: #2c3e50;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    transition: background 0.2s ease;
+}
+
+.calendar-controls button:hover {
+    background: #34495e;
+}
+
+#current-month {
+    font-weight: 500;
+    font-size: 1rem;
+    color: #2c3e50;
+}
+
+.calendar {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+}
+
+.calendar-day-header {
+    text-align: center;
+    font-weight: 600;
+    padding: 12px 5px;
+    color: #2c3e50;
+    font-size: 0.85rem;
+    background: #f5f5f5;
+}
+
+.calendar-day {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #e0e0e0;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 1rem;
+    min-height: 50px;
+}
+
+.calendar-day:hover {
+    background: #f5f5f5;
+    border-color: #bbb;
+}
+
+.calendar-day.other-month {
+    color: #ccc;
+}
+
+.calendar-day.has-event {
+    background: #3498db;
+    border: 1px solid #2980b9;
+    font-weight: 600;
+    color: white;
+    transition: background 0.2s ease, transform 0.1s ease;
+}
+
+.calendar-day.has-event:hover {
+    background: #2980b9;
+    transform: scale(1.05);
+}
+
+/* Tooltip pour les événements du calendrier */
+.calendar-tooltip {
+    position: fixed;
+    background: #2c3e50;
+    color: white;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    min-width: 200px;
+    max-width: 300px;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    transform: translate(-50%, -100%);
+    animation: tooltipFadeIn 0.2s ease;
+    pointer-events: none;
+}
+
+.calendar-tooltip-item {
+    padding: 6px 0;
+}
+
+.calendar-tooltip-item + .calendar-tooltip-item {
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.calendar-tooltip-item strong {
+    display: block;
+    margin-bottom: 4px;
+    color: #3498db;
+}
+
+.calendar-tooltip-item div {
+    font-size: 0.85rem;
+    color: #bdc3c7;
+}
+
+.calendar-tooltip::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 8px solid transparent;
+    border-top-color: #2c3e50;
+}
+
+/* Modal */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    animation: fadeIn 0.3s ease;
+}
+
+.modal.show {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.modal-content {
+    background: white;
+    padding: 35px;
+    max-width: 550px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: slideUp 0.3s ease;
+    border: 1px solid #ddd;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.close {
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    color: #999;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.close:hover {
+    color: #333;
+}
+
+.modal-content h2 {
+    color: #2c3e50;
+    margin-bottom: 20px;
+    clear: both;
+    font-weight: 500;
+}
+
+#selected-event-info {
+    background: #f9f9f9;
+    padding: 15px;
+    margin-bottom: 25px;
+    border-left: 3px solid #3498db;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-row .form-group {
+    margin-bottom: 0;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+    color: #333;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    font-size: 0.95rem;
+    transition: border-color 0.2s ease;
+    background: white;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: #3498db;
+}
+
+/* Checkbox RGPD */
+.form-group-checkbox {
+    margin: 25px 0;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: flex-start;
+    cursor: pointer;
+    gap: 12px;
+}
+
+.checkbox-label input[type="checkbox"] {
+    margin-top: 3px;
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.checkbox-text {
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: #555;
+}
+
+.checkbox-text a {
+    color: #3498db;
+    text-decoration: underline;
+    font-weight: 500;
+}
+
+.checkbox-text a:hover {
+    color: #2980b9;
+}
+
+.form-actions {
+    display: flex;
+    gap: 15px;
+    margin-top: 30px;
+}
+
+.btn-cancel,
+.btn-submit {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-cancel {
+    background: #ecf0f1;
+    color: #555;
+    border: 1px solid #bdc3c7;
+}
+
+.btn-cancel:hover {
+    background: #bdc3c7;
+}
+
+.btn-submit {
+    background: #2c3e50;
+    color: white;
+}
+
+.btn-submit:hover {
+    background: #34495e;
+}
+
+.btn-submit:disabled {
+    background: #95a5a6;
+    cursor: not-allowed;
+}
+
+.success-message {
+    background: #d5f4e6;
+    color: #27ae60;
+    padding: 15px;
+    margin-top: 20px;
+    border-left: 3px solid #27ae60;
+    font-weight: 500;
+}
+
+.hidden {
+    display: none;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+    .main-content {
+        grid-template-columns: 1fr;
+    }
+
+    .calendar-section {
+        position: relative;
+        top: 0;
+    }
+}
+
+@media (max-width: 600px) {
+    header h1 {
+        font-size: 1.5rem;
+    }
+
+    .modal-content {
+        padding: 20px;
+    }
+
+    .form-row {
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+
+    .form-row .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-actions {
+        flex-direction: column;
+    }
+}

@@ -1,227 +1,258 @@
-# Application d'Inscription aux Événements
+# 📅 Dynamic Calendar - Application d'Inscription aux Événements
 
-Application web permettant de visualiser et s'inscrire aux événements provenant de votre ERP.
+Application web moderne permettant de visualiser et s'inscrire aux sessions d'admission de l'IFCV.
 
-## Structure du Projet
+**✅ Production Ready** - Prêt pour le déploiement sur Vercel
+
+---
+
+## 🎯 Fonctionnalités
+
+- ✅ **Calendrier interactif** avec navigation mois par mois
+- ✅ **Liste des événements** avec détails complets
+- ✅ **Tooltips au survol** des dates et formations
+- ✅ **Formulaire d'inscription** avec validation RGPD
+- ✅ **Responsive design** (mobile, tablet, desktop)
+- ✅ **Intégration API ERP** sécurisée
+- ✅ **Backend serverless** (Vercel Functions)
+
+---
+
+## 🏗️ Architecture
+
+```
+Frontend (Static)          Backend (Serverless)        API ERP
+┌────────────────┐         ┌─────────────────┐        ┌──────────────┐
+│  HTML/CSS/JS   │  ───→   │  /api/events    │  ───→  │   Meetings   │
+│  dans public/  │         │  /api/formations│  ───→  │  Formations  │
+│                │  ←───   │  /api/register  │  ───→  │  Candidates  │
+└────────────────┘         └─────────────────┘        └──────────────┘
+  Vercel CDN              Vercel Functions           groupeifcv API
+```
+
+**Sécurité** : La clé API est stockée côté serveur uniquement (variables d'environnement Vercel).
+
+---
+
+## 🚀 Déploiement Rapide
+
+### Option 1 : Déploiement Automatique (Recommandé)
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/VOTRE_USERNAME/dynamic-calendar)
+
+1. Cliquez sur le bouton ci-dessus
+2. Connectez votre compte GitHub
+3. Ajoutez les 4 variables d'environnement requises
+4. Déployez ! 🎉
+
+### Option 2 : Déploiement Manuel
+
+Suivez le guide détaillé : **[DEPLOYMENT.md](./DEPLOYMENT.md)**
+
+---
+
+## 🛠️ Développement Local
+
+### Prérequis
+- Node.js 18+
+- npm ou yarn
+
+### Installation
+
+```bash
+# 1. Cloner le repository
+git clone https://github.com/VOTRE_USERNAME/dynamic-calendar.git
+cd dynamic-calendar
+
+# 2. Installer les dépendances
+npm install
+
+# 3. Créer le fichier .env.local
+cp .env.example .env.local
+# Éditer .env.local avec vos vraies valeurs
+
+# 4. Lancer le serveur de développement
+npm run dev
+```
+
+Ouvrez http://localhost:3000
+
+---
+
+## 📝 Variables d'Environnement
+
+| Variable                      | Description                          | Exemple                                              |
+|-------------------------------|--------------------------------------|------------------------------------------------------|
+| `API_KEY`                     | Clé d'authentification API ERP       | `rrQFJZQi5eFcbFr...`                                |
+| `API_URL_GET_EVENTS`          | URL pour récupérer les événements   | `https://groupeifcv.pyramideapp.fr/api/meetings`    |
+| `API_URL_GET_FORMATIONS`      | URL pour récupérer les formations   | `https://groupeifcv.pyramideapp.fr/api/formations`  |
+| `API_URL_POST_REGISTRATION`   | URL pour envoyer les inscriptions   | `https://groupeifcv.pyramideapp.fr/api/candidates`  |
+
+⚠️ **Ne JAMAIS commiter le fichier `.env.local` dans Git !**
+
+---
+
+## 📂 Structure des Fichiers
 
 ```
 Dynamic Calendar/
-├── index.html          # Page principale
-├── styles.css          # Styles de l'application
-├── config.js           # Configuration de l'API (généré depuis .env)
-├── app.js              # Logique de l'application
-├── .env                # Variables d'environnement (URLs des API)
-├── build-config.js     # Script pour générer config.js depuis .env
-├── API_MAPPING.md      # Documentation du mapping API ERP
-├── .gitignore          # Fichiers à ignorer par Git
-└── README.md           # Ce fichier
+├── public/                  # Frontend statique
+│   ├── index.html          # Page principale
+│   ├── styles.css          # Styles CSS
+│   └── app.js              # Logique frontend (sans clé API)
+│
+├── api/                    # Backend Serverless Functions
+│   ├── events.js           # GET /api/events
+│   ├── formations.js       # GET /api/formations
+│   └── register.js         # POST /api/register
+│
+├── .env.example            # Template des variables
+├── .env.local              # Variables locales (gitignored)
+├── .gitignore             # Fichiers ignorés
+├── vercel.json            # Configuration Vercel
+├── package.json           # Dépendances
+├── DEPLOYMENT.md          # Guide de déploiement
+└── README.md              # Ce fichier
 ```
 
-## Configuration
+---
 
-### 1. Configurer le fichier .env
+## 🔐 Sécurité
 
-Modifiez le fichier `.env` avec les URLs complètes de votre API ERP :
+- ✅ **Clé API côté serveur** uniquement
+- ✅ **HTTPS obligatoire** en production
+- ✅ **CORS configuré** correctement
+- ✅ **Validation des données** côté backend
+- ✅ **Consentement RGPD** obligatoire
+- ✅ **Variables d'environnement** protégées
 
-```env
-# URL complète pour récupérer les événements (sessions d'admission)
-API_URL_GET_EVENTS=https://votre-erp.com/api/events
+---
 
-# URL complète pour récupérer les formations
-API_URL_GET_FORMATIONS=https://votre-erp.com/api/formations
+## 🎨 Personnalisation
 
-# URL complète pour envoyer les inscriptions
-API_URL_POST_REGISTRATION=https://votre-erp.com/api/registrations
+### Modifier les couleurs
 
-# Clé API (si nécessaire pour l'authentification)
-API_KEY=votre_cle_api_ici
+Éditez `public/styles.css` :
 
-# Utiliser la clé API dans les headers (true/false)
-USE_API_KEY=false
+```css
+/* Couleur principale */
+background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+
+/* Couleur des événements dans le calendrier */
+.calendar-day.has-event {
+    background: #3498db;
+}
 ```
 
-### 2. Générer le fichier config.js
+### Ajouter des champs au formulaire
 
-Une fois le `.env` configuré, générez automatiquement le fichier `config.js` :
+1. **HTML** : Ajoutez le champ dans `public/index.html`
+2. **Backend** : Modifiez `api/register.js` pour traiter le nouveau champ
+3. **Frontend** : Mettez à jour `public/app.js` pour envoyer la donnée
 
-```bash
-node build-config.js
-```
+---
 
-Vous verrez un message de confirmation :
+## 🐛 Dépannage
 
-```
-✅ Fichier config.js généré avec succès !
+### Les événements ne se chargent pas
 
-Configuration chargée:
-  • Événements: https://votre-erp.com/api/events
-  • Formations: https://votre-erp.com/api/formations
-  • Inscriptions: https://votre-erp.com/api/registrations
-  • Authentification: Désactivée
-```
+1. Vérifiez les variables d'environnement dans Vercel
+2. Consultez les logs : Dashboard Vercel → Functions → events.js
+3. Vérifiez que l'API ERP est accessible
 
-**Méthode alternative** : Vous pouvez aussi modifier directement le fichier `config.js` si vous préférez.
+### Erreur CORS
 
-## Format des Données API
+- Assurez-vous que `vercel.json` est présent
+- Vérifiez les headers CORS dans les fonctions API
 
-L'application est compatible avec le format JSON de votre API ERP.
+### Formulaire ne soumet pas
 
-**Mapping automatique** : L'application convertit automatiquement les données de votre API ERP vers son format interne :
-- `title` → `titre`
-- `date_start` (DD/MM/YYYY) → `date` (YYYY-MM-DD)
-- `time_start` (HH:MM:SS) → `heure` (HH:MM)
-- `format` ("face_to_face"/"online") → `type` ("physique"/"visio")
-- `formations[].name` → `description`
-- `location` / `training_organizations` → `lieu`
+- Ouvrez la console du navigateur (F12)
+- Vérifiez les erreurs JavaScript
+- Testez la route `/api/register` avec Postman
 
-### Événements (GET)
+---
 
-Votre API ERP retourne les événements au format :
+## 📊 API Endpoints
 
+### GET /api/events
+Récupère la liste des événements
+
+**Réponse** :
 ```json
 [
   {
     "id": "uuid",
-    "title": "Titre de l'événement",
-    "date_start": "06/12/2031",
-    "time_start": "12:05:00",
+    "title": "Session Admission",
+    "date_start": "05/01/2026",
+    "time_start": "14:00:00",
     "format": "face_to_face",
-    "location": "Adresse",
+    "location": "70 Rue Marius Aufan...",
     "formations": [...],
     "training_organizations": [...]
   }
 ]
 ```
 
-**Pour plus de détails sur le mapping, consultez [API_MAPPING.md](API_MAPPING.md)**
+### GET /api/formations
+Récupère la liste des formations
 
-### Inscription (POST)
+### POST /api/register
+Enregistre une inscription
 
-L'application envoie les inscriptions au format requis par l'API ERP :
-
+**Body** :
 ```json
 {
   "first_name": "John",
   "last_name": "Doe",
-  "birthday": "1990-01-01",
-  "email": "example@example.com",
+  "email": "john@example.com",
   "phone": "0123456789",
+  "birthday": "1990-01-01",
   "sexe": "male",
-  "cp": "12345",
-  "city": "CityName",
-  "formation": ["2990"],
+  "address": "123 rue Example",
+  "cp": "75001",
+  "city": "Paris",
+  "formation": ["103"],
   "orga": "26",
   "source": "Site Internet",
   "origine": ""
 }
 ```
 
-**Champs du formulaire :**
-- Nom, Prénom
-- Email, Téléphone
-- Date de naissance
-- Sexe (homme/femme/autre)
-- Code postal, Ville
-- Formation souhaitée (sélection parmi les formations de l'événement)
+---
 
-## Utilisation
+## 🤝 Contribution
 
-### Lancement de l'application
+Les contributions sont les bienvenues !
 
-1. **Avec un serveur local :**
-   ```bash
-   # Python 3
-   python -m http.server 8000
+1. Fork le projet
+2. Créez une branche (`git checkout -b feature/ma-feature`)
+3. Committez (`git commit -m 'Ajout de ma feature'`)
+4. Push (`git push origin feature/ma-feature`)
+5. Ouvrez une Pull Request
 
-   # Python 2
-   python -m SimpleHTTPServer 8000
+---
 
-   # Node.js (avec http-server)
-   npx http-server
-   ```
+## 📄 License
 
-2. Ouvrez votre navigateur et accédez à `http://localhost:8000`
+MIT License - Voir [LICENSE](LICENSE) pour plus de détails.
 
-### Fonctionnalités
+---
 
-1. **Visualisation des événements :**
-   - Liste des événements à gauche
-   - Calendrier à droite avec dates en surbrillance
+## 👤 Auteur
 
-2. **Navigation du calendrier :**
-   - Utilisez les flèches < > pour changer de mois
-   - Les jours avec événements sont en surbrillance orange
+**IFCV** - Institut de Formation de la CCI de Paris Île-de-France
 
-3. **Inscription :**
-   - Cliquez sur "S'inscrire" sur un événement
-   - Remplissez le formulaire
-   - Validez l'inscription
+- Site web : https://www.ifcv.fr
+- Mentions légales : https://www.ifcv.fr/mentions-legales/
 
-## Connexion à l'API
+---
 
-L'application se connecte directement à votre API ERP configurée dans le fichier `.env`. Si l'API n'est pas accessible ou mal configurée, un message d'erreur s'affichera.
+## 🙏 Remerciements
 
-Assurez-vous que :
-- Les URLs dans `.env` sont correctes
-- Votre API est accessible depuis le navigateur
-- Les CORS sont correctement configurés sur votre serveur (voir section Support CORS ci-dessous)
+- [Vercel](https://vercel.com) pour l'hébergement
+- [Pyramide App](https://pyramideapp.fr) pour l'API ERP
 
-## Personnalisation
+---
 
-### Couleurs
-
-Modifiez les couleurs principales dans `styles.css` :
-
-```css
-/* Couleur principale */
-background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-
-/* Couleur des événements */
-.calendar-day.has-event {
-    background: #fff3e0;
-    border: 2px solid #ff9800;
-}
-```
-
-### Champs du formulaire
-
-Pour ajouter des champs, modifiez :
-1. Le HTML dans `index.html` (section formulaire)
-2. La fonction `handleRegistration()` dans `app.js`
-
-## Gestion des Erreurs
-
-L'application gère automatiquement :
-- Échec de connexion à l'API
-- Erreurs d'inscription
-- Validation des formulaires
-
-## Compatibilité
-
-- Navigateurs modernes (Chrome, Firefox, Safari, Edge)
-- Responsive design pour mobile et tablette
-
-## Support CORS
-
-Si vous rencontrez des erreurs CORS, vous devez configurer votre serveur API pour autoriser les requêtes depuis votre domaine :
-
-```
-Access-Control-Allow-Origin: *
-Access-Control-Allow-Methods: GET, POST, OPTIONS
-Access-Control-Allow-Headers: Content-Type, Authorization
-```
-
-## Améliorations Futures
-
-- [ ] Système de pagination pour les événements
-- [ ] Filtres par type d'événement (visio/physique)
-- [ ] Recherche d'événements
-- [ ] Confirmation par email automatique
-- [ ] Gestion des inscriptions multiples
-- [ ] Export des inscriptions
-
-## Sécurité
-
-**Important :** Ne commitez jamais le fichier `.env` dans un dépôt public. Ajoutez-le à votre `.gitignore`.
-
-Pour une utilisation en production, utilisez un backend pour gérer les appels API et protéger vos clés.
+**Prêt à déployer ?** Consultez [DEPLOYMENT.md](./DEPLOYMENT.md) 🚀

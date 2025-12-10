@@ -1,24 +1,38 @@
-# Fichiers d'environnement
+# Fichiers d'environnement - NE JAMAIS COMMITER
 .env
 .env.local
 .env.production
+.env.*.local
+.vercel
 
 # Fichiers système
 .DS_Store
 Thumbs.db
-
-# Éditeurs
-.vscode/
-.idea/
 *.swp
 *.swo
 *~
 
+# Éditeurs
+.vscode/
+.idea/
+
 # Logs
 *.log
 npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# Dépendances (si vous ajoutez Node.js)
+# Dépendances
 node_modules/
 package-lock.json
 yarn.lock
+
+# Fichiers de build temporaires
+.cache/
+dist/
+build/
+
+# Anciens fichiers (à ne plus utiliser en production)
+config.js
+proxy-server.js
+build-config.js
