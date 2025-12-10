@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inscription aux Événements</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Inscription aux Événements</h1>
+        </header>
+
+        <div class="main-content">
+            <!-- Liste des événements à gauche -->
+            <div class="events-section">
+                <h2>Événements Disponibles</h2>
+                <div id="loading" class="loading">Chargement des événements...</div>
+                <div id="events-list" class="events-list"></div>
+            </div>
+
+            <!-- Calendrier à droite -->
+            <div class="calendar-section">
+                <h2>Calendrier</h2>
+                <div class="calendar-controls">
+                    <button id="prev-month">&lt;</button>
+                    <span id="current-month"></span>
+                    <button id="next-month">&gt;</button>
+                </div>
+                <div id="calendar" class="calendar"></div>
+            </div>
+        </div>
+
+        <!-- Modal pour le formulaire d'inscription -->
+        <div id="registration-modal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>Inscription à l'événement</h2>
+                <div id="selected-event-info"></div>
+
+                <form id="registration-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="nom">Nom *</label>
+                            <input type="text" id="nom" name="nom" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="prenom">Prénom *</label>
+                            <input type="text" id="prenom" name="prenom" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Email *</label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="telephone">Téléphone *</label>
+                            <input type="tel" id="telephone" name="telephone" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="birthday">Date de naissance *</label>
+                            <input type="date" id="birthday" name="birthday" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="sexe">Sexe *</label>
+                        <select id="sexe" name="sexe" required>
+                            <option value="">Sélectionnez...</option>
+                            <option value="male">Homme</option>
+                            <option value="female">Femme</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="address">Adresse *</label>
+                        <input type="text" id="address" name="address" required placeholder="Numéro et nom de rue">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="cp">Code postal *</label>
+                            <input type="text" id="cp" name="cp" required pattern="[0-9]{5}" maxlength="5">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="city">Ville *</label>
+                            <input type="text" id="city" name="city" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="formation">Formation souhaitée *</label>
+                        <select id="formation" name="formation" required>
+                            <option value="">Sélectionnez une formation...</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group-checkbox">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="rgpd-consent" name="rgpd-consent" required>
+                            <span class="checkbox-text">
+                                J'accepte que mes données personnelles soient traitées conformément à la
+                                <a href="https://www.ifcv.fr/mentions-legales/" target="_blank" rel="noopener noreferrer">politique de confidentialité</a> *
+                            </span>
+                        </label>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn-cancel">Annuler</button>
+                        <button type="submit" class="btn-submit">Valider l'inscription</button>
+                    </div>
+                </form>
+
+                <div id="success-message" class="success-message hidden">
+                    Inscription réussie ! Vous allez recevoir un email de confirmation.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
