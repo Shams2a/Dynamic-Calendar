@@ -1,8 +1,9 @@
 // État de l'application
 const appState = {
-    events: [],
+    events: [], // Tous les événements (parents + enfants)
     formations: [],
     selectedEvent: null,
+    selectedOccurrences: [], // Toutes les occurrences d'un événement récurrent
     currentMonth: new Date().getMonth(),
     currentYear: new Date().getFullYear()
 };
@@ -31,6 +32,32 @@ async function initializeApp() {
     }
 }
 
+// Fonction de sanitisation contre les attaques XSS
+function sanitizeHTML(str) {
+    if (!str) return '';
+
+    const temp = document.createElement('div');
+    temp.textContent = str;
+    return temp.innerHTML;
+}
+
+// Sanitisation robuste pour les URLs
+function sanitizeURL(url) {
+    if (!url) return '#';
+
+    // Autoriser uniquement http, https, et mailto
+    const allowedProtocols = ['http:', 'https:', 'mailto:'];
+    try {
+        const parsed = new URL(url, window.location.origin);
+        if (allowedProtocols.includes(parsed.protocol)) {
+            return parsed.href;
+        }
+    } catch (e) {
+        // URL invalide
+    }
+    return '#';
+}
+
 // Conversion du format de date DD/MM/YYYY vers YYYY-MM-DD
 function convertDateFormat(dateStr) {
     if (!dateStr) return null;
@@ -46,6 +73,48 @@ function convertDateFormat(dateStr) {
         return `${cleanYear}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
     }
     return cleanedDate;
+}
+
+// Récupérer les événements parents (pour affichage dans la liste)
+function getParentEvents(events) {
+    return events.filter(event => event.parent_id === null);
+}
+
+// Récupérer toutes les occurrences d'un événement récurrent
+function getEventOccurrences(events, parentEvent) {
+    if (!parentEvent.recurrence_enabled) {
+        return [parentEvent];
+    }
+
+    // Trouver toutes les occurrences (enfants + parent)
+    const occurrences = events.filter(event =>
+        event.id === parentEvent.id || event.parent_id === parentEvent.id
+    );
+
+    // Trier par date
+    return occurrences.sort((a, b) => new Date(a.date) - new Date(b.date));
+}
+
+// Obtenir le libellé de récurrence
+function getRecurrenceLabel(event) {
+    if (!event.recurrence_enabled || !event.periodicite) {
+        return null;
+    }
+
+    const eventDate = new Date(event.date);
+    const dayNames = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
+    const dayName = dayNames[eventDate.getDay()];
+
+    switch (event.periodicite) {
+        case 'by_week':
+            return `Tous les ${dayName}s`;
+        case 'by_day':
+            return 'Tous les jours';
+        case 'by_month':
+            return 'Tous les mois';
+        default:
+            return 'Récurrent';
+    }
 }
 
 // Mapping des données de l'API ERP vers le format de l'application
@@ -67,6 +136,10 @@ function mapEventFromAPI(apiEvent) {
             : apiEvent.metting_link || 'En ligne',
         max_person: apiEvent.max_person,
         number_participants: apiEvent.number_participants,
+        // Données de récurrence
+        parent_id: apiEvent.parent_id,
+        recurrence_enabled: apiEvent.recurrence_enabled,
+        periodicite: apiEvent.periodicite,
         // Données brutes pour le formulaire d'inscription
         formations: apiEvent.formations || [],
         training_organizations: apiEvent.training_organizations || []
@@ -147,7 +220,22 @@ function renderEvents() {
         return;
     }
 
-    appState.events.forEach(event => {
+    // Afficher uniquement les événements parents
+    const parentEvents = getParentEvents(appState.events);
+
+    if (parentEvents.length === 0) {
+        eventsListEl.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-icon">📅</div>
+                <h3>Aucun événement disponible</h3>
+                <p>Il n'y a actuellement aucune session d'admission planifiée.</p>
+                <p class="empty-state-hint">Revenez consulter cette page prochainement pour découvrir nos prochaines dates.</p>
+            </div>
+        `;
+        return;
+    }
+
+    parentEvents.forEach(event => {
         const eventCard = createEventCard(event);
         eventsListEl.appendChild(eventCard);
     });
@@ -182,26 +270,45 @@ function createEventCard(event) {
     card.dataset.eventId = event.id;
 
     const eventDate = new Date(event.date);
-    const formattedDate = eventDate.toLocaleDateString('fr-FR', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-    });
+    const recurrenceLabel = getRecurrenceLabel(event);
+
+    // Pour un événement récurrent, afficher le libellé de récurrence au lieu de la date complète
+    let dateDisplay;
+    if (recurrenceLabel) {
+        dateDisplay = `${recurrenceLabel} à ${event.heure}`;
+    } else {
+        const formattedDate = eventDate.toLocaleDateString('fr-FR', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+        dateDisplay = formattedDate;
+    }
 
     const formationsResult = event.formations && event.formations.length > 0
         ? formatFormationsDisplay(event.formations)
         : { html: event.description || '', hiddenFormations: null };
 
+    // Badge de récurrence
+    const recurrenceBadge = recurrenceLabel ? `<span class="recurrence-badge">🔁 Récurrent</span>` : '';
+
+    // Sanitisation des données pour éviter les attaques XSS
+    const sanitizedTitre = sanitizeHTML(event.titre);
+    const sanitizedDateDisplay = sanitizeHTML(dateDisplay);
+    const sanitizedHeure = sanitizeHTML(event.heure);
+    const sanitizedLieu = sanitizeHTML(event.lieu || 'Non spécifié');
+    const sanitizedType = sanitizeHTML(event.type);
+
     card.innerHTML = `
-        <div class="event-title">${event.titre}</div>
+        <div class="event-title">${sanitizedTitre} ${recurrenceBadge}</div>
         <div class="event-details">
-            <div>📅 ${formattedDate}</div>
-            <div>🕐 ${event.heure}</div>
-            <div>📍 ${event.lieu || 'Non spécifié'}</div>
+            <div>📅 ${sanitizedDateDisplay}</div>
+            ${!recurrenceLabel ? `<div>🕐 ${sanitizedHeure}</div>` : ''}
+            <div>📍 ${sanitizedLieu}</div>
             ${formationsResult.html ? `<div class="formations-line">📝 ${formationsResult.html}</div>` : ''}
         </div>
-        <span class="event-type ${event.type}">${event.type === 'visio' ? '💻 Visio' : '🏢 Physique'}</span>
+        <span class="event-type ${sanitizedType}">${sanitizedType === 'visio' ? '💻 Visio' : '🏢 Physique'}</span>
         <button class="event-register-btn">S'inscrire</button>
     `;
 
@@ -223,7 +330,7 @@ function createEventCard(event) {
                 // Créer le tooltip
                 tooltipElement = document.createElement('div');
                 tooltipElement.className = 'formations-tooltip-content';
-                tooltipElement.innerHTML = hiddenFormations.map(f => `<div>• ${f}</div>`).join('');
+                tooltipElement.innerHTML = hiddenFormations.map(f => `<div>• ${sanitizeHTML(f)}</div>`).join('');
 
                 document.body.appendChild(tooltipElement);
 
@@ -324,9 +431,11 @@ function createCalendarDay(day, isOtherMonth, events) {
             tooltipElement.className = 'calendar-tooltip';
 
             const eventsList = events.map(event => {
+                const sanitizedTitre = sanitizeHTML(event.titre);
+                const sanitizedHeure = sanitizeHTML(event.heure);
                 return `<div class="calendar-tooltip-item">
-                    <strong>${event.titre}</strong>
-                    <div>${event.heure}</div>
+                    <strong>${sanitizedTitre}</strong>
+                    <div>${sanitizedHeure}</div>
                 </div>`;
             }).join('');
 
@@ -417,23 +526,68 @@ function setupEventListeners() {
 function openRegistrationModal(event) {
     appState.selectedEvent = event;
 
+    // Récupérer toutes les occurrences si l'événement est récurrent
+    appState.selectedOccurrences = getEventOccurrences(appState.events, event);
+
     const modal = document.getElementById('registration-modal');
     const eventInfoEl = document.getElementById('selected-event-info');
 
-    const eventDate = new Date(event.date);
-    const formattedDate = eventDate.toLocaleDateString('fr-FR', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-    });
+    const recurrenceLabel = getRecurrenceLabel(event);
 
-    eventInfoEl.innerHTML = `
-        <h3>${event.titre}</h3>
-        <p>📅 ${formattedDate} à ${event.heure}</p>
-        <p>📍 ${event.lieu || 'Non spécifié'}</p>
-        <p>Type: ${event.type === 'visio' ? '💻 Visioconférence' : '🏢 Présentiel'}</p>
+    // Sanitisation pour le modal
+    const sanitizedTitre = sanitizeHTML(event.titre);
+    const sanitizedLieu = sanitizeHTML(event.lieu || 'Non spécifié');
+
+    let eventInfo = `<h3>${sanitizedTitre}</h3>`;
+
+    // Si événement récurrent, afficher le sélecteur de date
+    if (recurrenceLabel && appState.selectedOccurrences.length > 1) {
+        const sanitizedRecurrenceLabel = sanitizeHTML(recurrenceLabel);
+        const sanitizedHeure = sanitizeHTML(event.heure);
+
+        eventInfo += `
+            <p>🔁 ${sanitizedRecurrenceLabel} de ${sanitizedHeure}</p>
+            <div class="form-group">
+                <label for="event-date-select">Choisissez une date :</label>
+                <select id="event-date-select" required class="form-control">
+                    <option value="">Sélectionnez une date...</option>
+                    ${appState.selectedOccurrences.map(occ => {
+                        const occDate = new Date(occ.date);
+                        const formattedOccDate = occDate.toLocaleDateString('fr-FR', {
+                            weekday: 'long',
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                        });
+                        const sanitizedOccId = sanitizeHTML(occ.id);
+                        const sanitizedFormattedDate = sanitizeHTML(formattedOccDate);
+                        const sanitizedOccHeure = sanitizeHTML(occ.heure);
+                        return `<option value="${sanitizedOccId}">${sanitizedFormattedDate} à ${sanitizedOccHeure}</option>`;
+                    }).join('')}
+                </select>
+            </div>
+        `;
+    } else {
+        // Événement unique
+        const eventDate = new Date(event.date);
+        const formattedDate = eventDate.toLocaleDateString('fr-FR', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+        const sanitizedFormattedDate = sanitizeHTML(formattedDate);
+        const sanitizedHeure = sanitizeHTML(event.heure);
+        eventInfo += `<p>📅 ${sanitizedFormattedDate} à ${sanitizedHeure}</p>`;
+    }
+
+    const sanitizedType = sanitizeHTML(event.type);
+    eventInfo += `
+        <p>📍 ${sanitizedLieu}</p>
+        <p>Type: ${sanitizedType === 'visio' ? '💻 Visioconférence' : '🏢 Présentiel'}</p>
     `;
+
+    eventInfoEl.innerHTML = eventInfo;
 
     // Réinitialiser le formulaire
     document.getElementById('registration-form').reset();
@@ -478,14 +632,28 @@ async function handleRegistration(e) {
         return;
     }
 
+    // Pour un événement récurrent, vérifier qu'une date est sélectionnée
+    const eventDateSelect = document.getElementById('event-date-select');
+    if (eventDateSelect && !eventDateSelect.value) {
+        alert('Veuillez sélectionner une date pour cet événement récurrent.');
+        return;
+    }
+
     const submitBtn = e.target.querySelector('.btn-submit');
     submitBtn.disabled = true;
     submitBtn.textContent = 'Inscription en cours...';
 
+    // Déterminer l'événement à utiliser pour l'inscription
+    let eventToRegister = appState.selectedEvent;
+    if (eventDateSelect && eventDateSelect.value) {
+        // Trouver l'occurrence sélectionnée
+        eventToRegister = appState.selectedOccurrences.find(occ => occ.id === eventDateSelect.value);
+    }
+
     // Récupération de l'organisation (code) depuis l'événement sélectionné
-    const orgaCode = appState.selectedEvent.training_organizations &&
-                     appState.selectedEvent.training_organizations.length > 0
-                     ? appState.selectedEvent.training_organizations[0].code
+    const orgaCode = eventToRegister.training_organizations &&
+                     eventToRegister.training_organizations.length > 0
+                     ? eventToRegister.training_organizations[0].code
                      : "";
 
     // Le sexe doit être "male" ou "female" (pas de majuscule)
@@ -507,8 +675,6 @@ async function handleRegistration(e) {
         source: "Site Internet",
         origine: ""
     };
-
-    console.log('Données envoyées:', formData);
 
     try {
         const response = await fetch(API_ENDPOINTS.postRegistration, {

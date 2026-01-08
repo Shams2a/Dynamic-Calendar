@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "Bash(python3 -m http.server:*)"
+      "Bash(python3 -m http.server:*)",
+      "Bash(node proxy-server.js:*)"
     ],
     "deny": [],
     "ask": []
