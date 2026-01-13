@@ -282,31 +282,51 @@ function createEventCard(event) {
     // Badge de récurrence
     const recurrenceBadge = recurrenceLabel ? `<span class="recurrence-badge">🔁 Récurrent</span>` : '';
 
+    // Vérifier si l'événement est passé
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Minuit aujourd'hui
+    const isPastEvent = eventDate < today && !event.recurrence_enabled;
+
     // Sanitisation des données pour éviter les attaques XSS
     const sanitizedTitre = sanitizeHTML(event.titre);
     const sanitizedDateDisplay = sanitizeHTML(dateDisplay);
     const sanitizedHeure = sanitizeHTML(event.heure);
-    const sanitizedLieu = sanitizeHTML(event.lieu || 'Non spécifié');
+
+    // Pour les visios, afficher un message d'incitation
+    let locationDisplay;
+    if (event.type === 'visio') {
+        locationDisplay = '🔗 Inscrivez-vous pour rejoindre le lien';
+    } else {
+        locationDisplay = `📍 ${sanitizeHTML(event.lieu || 'Non spécifié')}`;
+    }
+
     const sanitizedType = sanitizeHTML(event.type);
+
+    // Bouton d'inscription : désactivé si événement passé
+    const registerButton = isPastEvent
+        ? '<button class="event-register-btn" disabled style="opacity: 0.5; cursor: not-allowed;">Événement passé</button>'
+        : '<button class="event-register-btn">S\'inscrire</button>';
 
     card.innerHTML = `
         <div class="event-title">${sanitizedTitre} ${recurrenceBadge}</div>
         <div class="event-details">
             <div>📅 ${sanitizedDateDisplay}</div>
             ${!recurrenceLabel ? `<div>🕐 ${sanitizedHeure}</div>` : ''}
-            <div>📍 ${sanitizedLieu}</div>
+            <div>${locationDisplay}</div>
             ${formationsResult.html ? `<div class="formations-line">📝 ${formationsResult.html}</div>` : ''}
         </div>
         <span class="event-type ${sanitizedType}">${sanitizedType === 'visio' ? '💻 Visio' : '🏢 Physique'}</span>
-        <button class="event-register-btn">S'inscrire</button>
+        ${registerButton}
     `;
 
-    // Gestionnaire de clic pour l'inscription
-    const registerBtn = card.querySelector('.event-register-btn');
-    registerBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        openRegistrationModal(event);
-    });
+    // Gestionnaire de clic pour l'inscription (seulement si pas passé)
+    if (!isPastEvent) {
+        const registerBtn = card.querySelector('.event-register-btn');
+        registerBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            openRegistrationModal(event);
+        });
+    }
 
     // Gestion du tooltip pour les formations
     if (formationsResult.hiddenFormations) {
@@ -446,10 +466,19 @@ function createCalendarDay(day, isOtherMonth, events) {
 
         // Gestionnaire de clic pour ouvrir le formulaire d'inscription
         dayEl.addEventListener('click', () => {
-            // Si plusieurs événements, ouvrir le premier
-            // (on pourrait améliorer pour afficher une liste de choix)
-            if (events.length > 0) {
-                openRegistrationModal(events[0]);
+            // Filtrer les événements futurs (pas passés)
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            const futureEvents = events.filter(event => {
+                const eventDate = new Date(event.date);
+                eventDate.setHours(0, 0, 0, 0);
+                return eventDate >= today || event.recurrence_enabled;
+            });
+
+            // Si plusieurs événements futurs, ouvrir le premier
+            if (futureEvents.length > 0) {
+                openRegistrationModal(futureEvents[0]);
             }
         });
     }
