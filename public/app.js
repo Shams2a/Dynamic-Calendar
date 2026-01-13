@@ -673,7 +673,8 @@ async function handleRegistration(e) {
         formation: [document.getElementById('formation').value],
         orga: orgaCode,
         source: "SiteInternet",
-        origine: ""
+        origine: "",
+        meeting_id: eventToRegister.id // ID de l'événement pour inscription
     };
 
     try {

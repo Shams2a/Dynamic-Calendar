@@ -94,13 +94,21 @@ export default async function handler(req, res) {
         }
 
         // Validation robuste des données
-        const { first_name, last_name, email, phone, birthday, sexe, address, cp, city, formation, orga } = req.body;
+        const { first_name, last_name, email, phone, birthday, sexe, address, cp, city, formation, orga, meeting_id } = req.body;
 
         // Vérifier les champs obligatoires
         if (!first_name || !last_name || !email || !phone || !birthday || !sexe || !address || !cp || !city) {
             return res.status(400).json({
                 error: 'Données manquantes',
                 message: 'Tous les champs sont obligatoires'
+            });
+        }
+
+        // Vérifier que l'ID de l'événement est fourni
+        if (!meeting_id) {
+            return res.status(400).json({
+                error: 'Événement manquant',
+                message: 'L\'identifiant de l\'événement est requis'
             });
         }
 
@@ -158,7 +166,7 @@ export default async function handler(req, res) {
             });
         }
 
-        // Préparer les données pour l'API ERP
+        // ÉTAPE 1 : Créer le candidat
         const registrationData = {
             first_name,
             last_name,
@@ -175,8 +183,7 @@ export default async function handler(req, res) {
             origine: req.body.origine || ""
         };
 
-        // Appel à l'API ERP
-        const response = await fetch(API_URL, {
+        const candidateResponse = await fetch(API_URL, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -185,22 +192,65 @@ export default async function handler(req, res) {
             body: JSON.stringify(registrationData)
         });
 
-        if (!response.ok) {
-            const errorData = await response.text();
-            console.error(`Erreur API ERP: ${response.status}`, errorData);
-            return res.status(response.status).json({
+        if (!candidateResponse.ok) {
+            const errorData = await candidateResponse.text();
+            console.error(`Erreur création candidat: ${candidateResponse.status}`, errorData);
+            return res.status(candidateResponse.status).json({
                 error: 'Erreur lors de l\'inscription',
-                message: 'Une erreur est survenue lors de l\'enregistrement de votre inscription'
+                message: 'Une erreur est survenue lors de la création de votre profil'
             });
         }
 
-        const data = await response.json();
+        const candidateData = await candidateResponse.json();
 
-        // Retourner le succès
+        // Récupérer l'ID du candidat créé
+        const candidateId = candidateData.data?.id;
+        if (!candidateId) {
+            console.error('ID candidat manquant dans la réponse:', candidateData);
+            return res.status(500).json({
+                error: 'Erreur serveur',
+                message: 'Impossible de récupérer l\'identifiant du candidat'
+            });
+        }
+
+        // ÉTAPE 2 : Inscrire le candidat à l'événement
+        const API_BASE_URL = process.env.API_BASE_URL || 'https://groupeifcv.pyramideapp.fr/api';
+        const meetingRegistrationUrl = `${API_BASE_URL}/candidate-meetings/${candidateId}/${meeting_id}`;
+
+        const meetingResponse = await fetch(meetingRegistrationUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': API_KEY
+            },
+            body: JSON.stringify({ present: true })
+        });
+
+        if (!meetingResponse.ok) {
+            const errorData = await meetingResponse.text();
+            console.error(`Erreur inscription événement: ${meetingResponse.status}`, errorData);
+            // Le candidat est créé mais pas inscrit à l'événement
+            return res.status(207).json({
+                success: true,
+                warning: true,
+                message: 'Profil créé mais erreur lors de l\'inscription à l\'événement',
+                data: {
+                    candidate: candidateData.data,
+                    meetingRegistration: null
+                }
+            });
+        }
+
+        const meetingData = await meetingResponse.json();
+
+        // Retourner le succès complet
         return res.status(200).json({
             success: true,
             message: 'Inscription réussie',
-            data: data
+            data: {
+                candidate: candidateData.data,
+                meetingRegistration: meetingData
+            }
         });
 
     } catch (error) {
