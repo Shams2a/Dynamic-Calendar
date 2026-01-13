@@ -167,6 +167,7 @@ export default async function handler(req, res) {
         }
 
         // ÉTAPE 1 : Créer le candidat
+        // Note: meeting_id n'est PAS envoyé à l'API candidates, il est utilisé après
         const registrationData = {
             first_name,
             last_name,
@@ -181,6 +182,7 @@ export default async function handler(req, res) {
             orga,
             source: req.body.source || "SiteInternet",
             origine: req.body.origine || ""
+            // meeting_id est intentionnellement exclu ici
         };
 
         const candidateResponse = await fetch(API_URL, {
@@ -217,7 +219,16 @@ export default async function handler(req, res) {
 
         // ÉTAPE 2 : Inscrire le candidat à l'événement
         const API_BASE_URL = process.env.API_BASE_URL || 'https://groupeifcv.pyramideapp.fr/api';
-        const meetingRegistrationUrl = `${API_BASE_URL}/candidate-meetings/${candidateId}/${meeting_id}`;
+        const meetingRegistrationUrl = `${API_BASE_URL}/candidate-meetings`;
+
+        const meetingPayload = {
+            meeting_id: meeting_id,
+            candidate_id: candidateId,
+            present: true
+        };
+
+        console.log('📍 URL inscription événement:', meetingRegistrationUrl);
+        console.log('📦 Payload:', JSON.stringify(meetingPayload, null, 2));
 
         const meetingResponse = await fetch(meetingRegistrationUrl, {
             method: 'POST',
@@ -225,7 +236,7 @@ export default async function handler(req, res) {
                 'Content-Type': 'application/json',
                 'Authorization': API_KEY
             },
-            body: JSON.stringify({ present: true })
+            body: JSON.stringify(meetingPayload)
         });
 
         if (!meetingResponse.ok) {
