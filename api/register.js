@@ -192,18 +192,20 @@ export default async function handler(req, res) {
             body: JSON.stringify(registrationData)
         });
 
-        if (!candidateResponse.ok) {
-            const errorData = await candidateResponse.text();
-            console.error(`Erreur création candidat: ${candidateResponse.status}`, errorData);
+        // Gérer les réponses de l'API
+        const candidateData = await candidateResponse.json();
+
+        // HTTP 409 = Candidat existant, mais la réponse contient quand même l'ID
+        // HTTP 200/201 = Candidat créé avec succès
+        if (!candidateResponse.ok && candidateResponse.status !== 409) {
+            console.error(`Erreur création candidat: ${candidateResponse.status}`, candidateData);
             return res.status(candidateResponse.status).json({
                 error: 'Erreur lors de l\'inscription',
                 message: 'Une erreur est survenue lors de la création de votre profil'
             });
         }
 
-        const candidateData = await candidateResponse.json();
-
-        // Récupérer l'ID du candidat créé
+        // Récupérer l'ID du candidat (nouveau ou existant)
         const candidateId = candidateData.data?.id;
         if (!candidateId) {
             console.error('ID candidat manquant dans la réponse:', candidateData);
