@@ -56,7 +56,7 @@ export default async function handler(req, res) {
         console.error('Erreur serveur:', error);
         return res.status(500).json({
             error: 'Erreur interne du serveur',
-            message: error.message
+            message: 'Une erreur est survenue. Veuillez réessayer ultérieurement.'
         });
     }
 }

@@ -661,7 +661,7 @@ async function handleRegistration(e) {
         city: document.getElementById('city').value,
         formation: [document.getElementById('formation').value],
         orga: orgaCode,
-        source: "Site Internet",
+        source: "SiteInternet",
         origine: ""
     };
 

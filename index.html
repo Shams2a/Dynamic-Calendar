@@ -64,7 +64,7 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="birthday">Date de naissance *</label>
+                            <label for="birthday">Date de naissance * (16-100 ans)</label>
                             <input type="date" id="birthday" name="birthday" required>
                         </div>
                     </div>
@@ -125,6 +125,25 @@
         </div>
     </div>
 
+    <script>
+        // Configuration des limites de date de naissance (16-100 ans)
+        (function() {
+            const birthdayInput = document.getElementById('birthday');
+            if (birthdayInput) {
+                const today = new Date();
+
+                // Date maximum : il y a 16 ans (âge minimum)
+                const maxDate = new Date(today.getFullYear() - 16, today.getMonth(), today.getDate());
+
+                // Date minimum : il y a 100 ans (âge maximum)
+                const minDate = new Date(today.getFullYear() - 100, today.getMonth(), today.getDate());
+
+                // Format ISO (YYYY-MM-DD) pour l'attribut date
+                birthdayInput.setAttribute('min', minDate.toISOString().split('T')[0]);
+                birthdayInput.setAttribute('max', maxDate.toISOString().split('T')[0]);
+            }
+        })();
+    </script>
     <script src="config.js"></script>
     <script src="app.js"></script>
 </body>

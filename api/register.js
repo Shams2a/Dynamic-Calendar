@@ -171,7 +171,7 @@ export default async function handler(req, res) {
             city,
             formation,
             orga,
-            source: req.body.source || "Site Internet",
+            source: req.body.source || "SiteInternet",
             origine: req.body.origine || ""
         };
 
