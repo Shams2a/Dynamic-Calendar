@@ -3,24 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inscription aux Événements</title>
+    <title>Inscription aux sessions d'admission</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>Inscription aux Événements</h1>
+            <h1>Inscription aux sessions d'admission</h1>
         </header>
 
         <div class="main-content">
-            <!-- Liste des événements à gauche -->
-            <div class="events-section">
-                <h2>Événements Disponibles</h2>
-                <div id="loading" class="loading">Chargement des événements...</div>
-                <div id="events-list" class="events-list"></div>
-            </div>
-
-            <!-- Calendrier à droite -->
+            <!-- Calendrier à gauche -->
             <div class="calendar-section">
                 <h2>Calendrier</h2>
                 <div class="calendar-controls">
@@ -29,6 +22,13 @@
                     <button id="next-month">&gt;</button>
                 </div>
                 <div id="calendar" class="calendar"></div>
+            </div>
+
+            <!-- Liste des événements à droite -->
+            <div class="events-section">
+                <h2>Événements Disponibles</h2>
+                <div id="loading" class="loading">Chargement des événements...</div>
+                <div id="events-list" class="events-list"></div>
             </div>
         </div>
 
