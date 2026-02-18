@@ -159,7 +159,7 @@ async function loadEvents() {
 
         // Filtrer les événements non publiés en ligne, puis mapper
         appState.events = apiEvents
-            .filter(event => event.publish_online === 1)
+            .filter(event => Number(event.publish_online) === 1)
             .map(mapEventFromAPI);
 
         loadingEl.style.display = 'none';

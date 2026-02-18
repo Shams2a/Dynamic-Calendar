@@ -166,8 +166,10 @@ async function loadEvents() {
         const data = await response.json();
         const apiEvents = Array.isArray(data) ? data : (data.events || []);
 
-        // Mapping des événements de l'API vers le format de l'application
-        appState.events = apiEvents.map(mapEventFromAPI);
+        // Filtrer les événements non publiés en ligne, puis mapper
+        appState.events = apiEvents
+            .filter(event => Number(event.publish_online) === 1)
+            .map(mapEventFromAPI);
 
         loadingEl.style.display = 'none';
     } catch (error) {
