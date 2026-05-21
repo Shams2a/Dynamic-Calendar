@@ -289,6 +289,10 @@ function createEventCard(event) {
     today.setHours(0, 0, 0, 0); // Minuit aujourd'hui
     const isPastEvent = eventDate < today && !event.recurrence_enabled;
 
+    if (isPastEvent) {
+        card.classList.add('past-event');
+    }
+
     // Sanitisation des données pour éviter les attaques XSS
     const sanitizedTitre = sanitizeHTML(event.titre);
     const sanitizedDateDisplay = sanitizeHTML(dateDisplay);
@@ -306,7 +310,7 @@ function createEventCard(event) {
 
     // Bouton d'inscription : désactivé si événement passé
     const registerButton = isPastEvent
-        ? '<button class="event-register-btn" disabled style="opacity: 0.5; cursor: not-allowed;">Événement passé</button>'
+        ? '<button class="event-register-btn" disabled>Événement passé</button>'
         : '<button class="event-register-btn">S\'inscrire</button>';
 
     card.innerHTML = `
@@ -430,6 +434,19 @@ function createCalendarDay(day, isOtherMonth, events) {
 
     if (events && events.length > 0) {
         dayEl.classList.add('has-event');
+
+        // Détecter si tous les événements de ce jour sont passés
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const hasFutureEvents = events.some(event => {
+            const eventDate = new Date(event.date);
+            eventDate.setHours(0, 0, 0, 0);
+            return eventDate >= today || event.recurrence_enabled;
+        });
+
+        if (!hasFutureEvents) {
+            dayEl.classList.add('past-event');
+        }
 
         // Rendre le jour cliquable
         dayEl.style.cursor = 'pointer';
