@@ -138,6 +138,31 @@ header h1 {
     background: #34495e;
 }
 
+/* Événement passé : carte grisée, bouton désactivé */
+.event-card.past-event {
+    opacity: 0.6;
+    border-left-color: #bdc3c7;
+    background: #f5f5f5;
+    cursor: not-allowed;
+}
+
+.event-card.past-event:hover {
+    border-left-color: #bdc3c7;
+    background: #f5f5f5;
+}
+
+.event-register-btn:disabled,
+.event-card.past-event .event-register-btn {
+    background: #bdc3c7;
+    color: #ecf0f1;
+    cursor: not-allowed;
+}
+
+.event-register-btn:disabled:hover,
+.event-card.past-event .event-register-btn:hover {
+    background: #bdc3c7;
+}
+
 /* État vide - Aucun événement */
 .empty-state {
     text-align: center;
@@ -325,6 +350,19 @@ header h1 {
 .calendar-day.has-event:hover {
     background: #2980b9;
     transform: scale(1.05);
+}
+
+/* Jour passé avec événements : grisé et non cliquable */
+.calendar-day.has-event.past-event {
+    background: #bdc3c7;
+    border-color: #95a5a6;
+    color: #ecf0f1;
+    cursor: not-allowed;
+}
+
+.calendar-day.has-event.past-event:hover {
+    background: #bdc3c7;
+    transform: none;
 }
 
 /* Tooltip pour les événements du calendrier */

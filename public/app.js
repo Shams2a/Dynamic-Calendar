@@ -80,6 +80,27 @@ function getParentEvents(events) {
     return events.filter(event => event.parent_id === null);
 }
 
+// Parser une date YYYY-MM-DD en date locale (évite les décalages UTC)
+function parseEventDate(dateStr) {
+    if (!dateStr) return null;
+    const parts = dateStr.split('-');
+    if (parts.length === 3) {
+        return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+    }
+    return new Date(dateStr);
+}
+
+// Vérifier si un événement (récurrent ou non) a au moins une occurrence future
+function hasFutureOccurrence(allEvents, event) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const occurrences = getEventOccurrences(allEvents, event);
+    return occurrences.some(occ => {
+        const occDate = parseEventDate(occ.date);
+        return occDate && occDate >= today;
+    });
+}
+
 // Récupérer toutes les occurrences d'un événement récurrent
 function getEventOccurrences(events, parentEvent) {
     if (!parentEvent.recurrence_enabled) {
@@ -295,10 +316,12 @@ function createEventCard(event) {
     // Badge de récurrence
     const recurrenceBadge = recurrenceLabel ? `<span class="recurrence-badge">🔁 Récurrent</span>` : '';
 
-    // Vérifier si l'événement est passé
-    const today = new Date();
-    today.setHours(0, 0, 0, 0); // Minuit aujourd'hui
-    const isPastEvent = eventDate < today && !event.recurrence_enabled;
+    // Événement considéré comme passé si aucune occurrence n'est future
+    const isPastEvent = !hasFutureOccurrence(appState.events, event);
+
+    if (isPastEvent) {
+        card.classList.add('past-event');
+    }
 
     // Sanitisation des données pour éviter les attaques XSS
     const sanitizedTitre = sanitizeHTML(event.titre);
@@ -317,7 +340,7 @@ function createEventCard(event) {
 
     // Bouton d'inscription : désactivé si événement passé
     const registerButton = isPastEvent
-        ? '<button class="event-register-btn" disabled style="opacity: 0.5; cursor: not-allowed;">Événement passé</button>'
+        ? '<button class="event-register-btn" disabled>Événement passé</button>'
         : '<button class="event-register-btn">S\'inscrire</button>';
 
     card.innerHTML = `
@@ -442,6 +465,19 @@ function createCalendarDay(day, isOtherMonth, events) {
     if (events && events.length > 0) {
         dayEl.classList.add('has-event');
 
+        // Une date concrète passée reste passée — griser et désactiver le clic
+        const dayDate = new Date(appState.currentYear, appState.currentMonth, day);
+        dayDate.setHours(0, 0, 0, 0);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const isPastDay = dayDate < today;
+
+        if (isPastDay) {
+            dayEl.classList.add('past-event');
+            dayEl.style.cursor = 'not-allowed';
+            return dayEl;
+        }
+
         // Rendre le jour cliquable
         dayEl.style.cursor = 'pointer';
 
@@ -557,8 +593,13 @@ function setupEventListeners() {
 function openRegistrationModal(event) {
     appState.selectedEvent = event;
 
-    // Récupérer toutes les occurrences si l'événement est récurrent
-    appState.selectedOccurrences = getEventOccurrences(appState.events, event);
+    // Récupérer les occurrences futures uniquement (filtrer les passées)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    appState.selectedOccurrences = getEventOccurrences(appState.events, event).filter(occ => {
+        const occDate = parseEventDate(occ.date);
+        return occDate && occDate >= today;
+    });
 
     const modal = document.getElementById('registration-modal');
     const eventInfoEl = document.getElementById('selected-event-info');
